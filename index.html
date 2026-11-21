@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NORBOYEV ACADEMY — Online O'yin Platformasi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --card-hover: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --purple: #8b5cf6;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--primary);
+        }
+
+        .logo span { color: var(--text); }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.92rem;
+        }
+
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: var(--card-hover); }
+
+        .container {
+            max-width: 1250px;
+            width: 100%;
+            margin: 25px auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .auth-wrapper {
+            max-width: 450px;
+            margin: 50px auto;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 25px;
+            background: var(--bg);
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+
+        .tab.active { background: var(--primary); color: white; }
+
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; font-size: 0.88rem; color: var(--text-muted); }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 11px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.98rem;
+        }
+
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+
+        .error-msg {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: none;
+            text-align: center;
+        }
+
+        .admin-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        .group-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            background: var(--bg);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .checkbox-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; }
+        .checkbox-item input { width: auto; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        th { color: var(--text-muted); font-weight: 600; background: rgba(15, 23, 42, 0.5); }
+
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; display: inline-block; }
+        .badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .badge-green { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .badge-gold { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .badge-purple { background: rgba(139, 92, 246, 0.2); color: #c084fc; }
+
+        .timer-wrapper {
+            width: 100%;
+            height: 10px;
+            background: var(--bg);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .timer-bar { height: 100%; width: 100%; background: var(--success); transition: width 0.25s linear, background-color 0.3s; }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        @media (max-width: 600px) { .options-grid { grid-template-columns: 1fr; } }
+
+        .option-btn {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            color: var(--text);
+            padding: 16px;
+            border-radius: 10px;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .option-btn:hover { border-color: var(--primary); background: rgba(59, 130, 246, 0.1); }
+
+        .control-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="loadingOverlay" class="hidden">⏳ Ma'lumotlar bazasi bilan bog'lanilmoqda...</div>
+
+<header>
+    <div class="logo">NORBOYEV <span>ACADEMY</span></div>
+    <div id="userInfoHeader" class="hidden">
+        <span id="currentUserName" style="margin-right: 15px; font-weight: 600;"></span>
+        <button class="btn btn-danger" onclick="logout()">Chiqish</button>
+    </div>
+</header>
+
+<div class="container">
+
+    <div id="authSection" class="auth-wrapper">
+        <div class="tabs">
+            <div class="tab active" id="tabStudent" onclick="switchAuthTab('student')">O'quvchi kirishi</div>
+            <div class="tab" id="tabAdmin" onclick="switchAuthTab('admin')">Admin kirishi</div>
+        </div>
+
+        <div id="authError" class="error-msg">Login parol xato!</div>
+
+        <form id="studentLoginForm" onsubmit="loginStudent(event)">
+            <div class="form-group">
+                <label>Maxsus kirish kodingiz (Admin bergan kod)</label>
+                <input type="text" id="studentCodeInput" placeholder="Masalan: G1-101" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">O'yinga kirish</button>
+        </form>
+
+        <form id="adminLoginForm" class="hidden" onsubmit="loginAdmin(event)">
+            <div class="form-group">
+                <label>Admin Login</label>
+                <input type="text" id="adminLoginInput" placeholder="Loginni kiriting" required>
+            </div>
+            <div class="form-group">
+                <label>Parol</label>
+                <input type="password" id="adminPassInput" placeholder="Parolni kiriting" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Admin panelga kirish</button>
+        </form>
+    </div>
+
+    <div id="adminSection" class="hidden">
+        <div class="admin-nav">
+            <button class="btn btn-primary" onclick="showAdminTab('questionsTab', this)">1. Savol Yaratish</button>
+            <button class="btn btn-outline" onclick="showAdminTab('studentsTab', this)">2. O'quvchilar va Kodlar</button>
+            <button class="btn btn-outline" onclick="showAdminTab('ratingsTab', this)">3. Reyting va Qiyin Savollar</button>
+            <button class="btn btn-outline" onclick="showAdminTab('controlTab', this)">4. Kechki O'yin Nazorati</button>
+            <button class="btn btn-outline" style="margin-left: auto;" onclick="refreshAdminData()">🔄 Yangilash</button>
+        </div>
+
+        <div id="questionsTab" class="admin-tab">
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Yangi savol qo'shish</h3>
+                    <form onsubmit="addQuestion(event)">
+                        <div class="form-group">
+                            <label>Qaysi guruhlarga bermoqchisiz?</label>
+                            <div style="margin-bottom: 8px;">
+                                <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="selectAllGroups(true)">Barcha 6 guruhni tanlash</button>
+                                <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="selectAllGroups(false)">Tozalash</button>
+                            </div>
+                            <div class="group-checkboxes" id="groupCheckboxes">
+                                <label class="checkbox-item"><input type="checkbox" value="1" checked> 1-Guruh</label>
+                                <label class="checkbox-item"><input type="checkbox" value="2"> 2-Guruh</label>
+                                <label class="checkbox-item"><input type="checkbox" value="3"> 3-Guruh</label>
+                                <label class="checkbox-item"><input type="checkbox" value="4"> 4-Guruh</label>
+                                <label class="checkbox-item"><input type="checkbox" value="5"> 5-Guruh</label>
+                                <label class="checkbox-item"><input type="checkbox" value="6"> 6-Guruh</label>
+                            </div>
+                        </div>
+
+                        <div class="grid-2" style="gap: 10px;">
+                            <div class="form-group">
+                                <label>Level (Daraja)</label>
+                                <select id="qLevel">
+                                    <option value="1">1-Level (Boshlang'ich)</option>
+                                    <option value="2">2-Level (O'rta)</option>
+                                    <option value="3">3-Level (Qiyin)</option>
+                                    <option value="4">4-Level (Ekspert)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Taymer (Soniya)</label>
+                                <input type="number" id="qTime" value="25" min="10" max="120" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Savol matni</label>
+                            <textarea id="qText" rows="2" placeholder="Savolni yozing..." required></textarea>
+                        </div>
+
+                        <div class="grid-2" style="gap: 10px;">
+                            <div class="form-group"><label>A variant</label><input type="text" id="optA" required></div>
+                            <div class="form-group"><label>B variant</label><input type="text" id="optB" required></div>
+                            <div class="form-group"><label>C variant</label><input type="text" id="optC" required></div>
+                            <div class="form-group"><label>D variant</label><input type="text" id="optD" required></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>To'g'ri javob</label>
+                            <select id="qCorrect">
+                                <option value="0">A variant</option>
+                                <option value="1">B variant</option>
+                                <option value="2">C variant</option>
+                                <option value="3">D variant</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-success" style="width: 100%;">Savolni saqlash va yuborish</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Bazadagi savollar ro'yxati</h3>
+                    <div style="max-height: 580px; overflow-y: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Level / Vaqt</th>
+                                    <th>Savol</th>
+                                    <th>Guruhlar</th>
+                                    <th>Amal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="questionsListBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="studentsTab" class="admin-tab hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Yangi o'quvchi qo'shish va kod yaratish</h3>
+                    <form onsubmit="addStudent(event)">
+                        <div class="form-group">
+                            <label>Guruhni tanlang (Har birida 10 tagacha o'quvchi)</label>
+                            <select id="stGroup" onchange="generateRandomCode()">
+                                <option value="1">1-Guruh</option>
+                                <option value="2">2-Guruh</option>
+                                <option value="3">3-Guruh</option>
+                                <option value="4">4-Guruh</option>
+                                <option value="5">5-Guruh</option>
+                                <option value="6">6-Guruh</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>O'quvchi Ism-Familiyasi</label>
+                            <input type="text" id="stName" placeholder="Masalan: Aliyev Vali" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Kirish kodi</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="stCode" required>
+                                <button type="button" class="btn btn-outline" onclick="generateRandomCode()">Kod yaratish</button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">O'quvchini qo'shish</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Ro'yxatdan o'tgan o'quvchilar (6 Guruh)</h3>
+                    <div style="max-height: 450px; overflow-y: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Guruh</th>
+                                    <th>Ism</th>
+                                    <th>Kirish Kodi</th>
+                                    <th>Amal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentsListBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ratingsTab" class="admin-tab hidden">
+            <div class="card" style="border-color: rgba(239, 68, 68, 0.4);">
+                <h3 style="color: #f87171;">⚠️ "Qiyin Savollar" Ogohlantirishi (Eng ko'p xato qilingan savollar)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Level</th>
+                            <th>Savol matni</th>
+                            <th>To'g'ri javob</th>
+                            <th>Xato qilingan soni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hardQuestionsBody"></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>🏆 Guruhlar Reytingi</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>O'rin</th>
+                            <th>Guruh</th>
+                            <th>O'quvchilar</th>
+                            <th>O'rtacha Level</th>
+                            <th>Jami Ball</th>
+                            <th>Yiqilishlar soni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="groupRatingBody"></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="border: none; margin: 0; padding: 0;">📊 O'quvchilar Reytingi, Streak va Xatolar</h3>
+                    <select id="filterGroupSelect" style="width: 200px;" onchange="renderRatings()">
+                        <option value="all">Barcha guruhlar</option>
+                        <option value="1">1-Guruh</option>
+                        <option value="2">2-Guruh</option>
+                        <option value="3">3-Guruh</option>
+                        <option value="4">4-Guruh</option>
+                        <option value="5">5-Guruh</option>
+                        <option value="6">6-Guruh</option>
+                    </select>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>O'rin</th>
+                                <th>Guruh</th>
+                                <th>O'quvchi</th>
+                                <th>Level</th>
+                                <th>Ball</th>
+                                <th>Maks. Streak / Urinishlar</th>
+                                <th>Qaysi savollarda xato qilgan?</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentRatingBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="controlTab" class="admin-tab hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Guruhlar uchun o'yin holati</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;" id="groupControlList"></div>
+                </div>
+                <div class="card">
+                    <h3>Levellarni ochish / yopish</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;" id="levelControlList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="studentSection" class="hidden">
+        <div class="game-header">
+            <div>
+                <h2 id="stDashboardTitle">1-Guruh</h2>
+                <div class="stat-pills">
+                    <span class="badge badge-gold">O'rningiz: <strong id="stRankDisplay">#1</strong></span>
+                    <span class="badge badge-purple">🔥 Streak: <strong id="stStreakDisplay">0</strong></span>
+                    <span class="badge badge-red">Yiqilishlar: <strong id="stFailsDisplay">0</strong></span>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <span class="badge badge-blue" style="font-size: 1rem; padding: 8px 15px;">Joriy Level: <span id="stCurrentLevel">1</span></span>
+                <div style="margin-top: 8px; font-weight: 700; color: var(--success); font-size: 1.1rem;">Ball: <span id="stScoreDisplay">0</span></div>
+            </div>
+        </div>
+
+        <div id="gameStartCard" class="card" style="text-align: center; padding: 40px 20px;">
+            <h2 id="levelReadyTitle" style="margin-bottom: 10px;">1-Levelga tayyormisiz?</h2>
+            <p id="levelReadyDesc" style="color: var(--text-muted); max-width: 550px; margin: 0 auto 25px;">
+                Har bir savol uchun taymer ishlaydi! Qancha tez to'g'ri javob bersangiz, shuncha ko'p <strong>Tezkor Bonus</strong> ball olasiz.
+            </p>
+            <button id="startGameBtn" class="btn btn-primary" style="font-size: 1.1rem; padding: 14px 30px;" onclick="startLevelGame()">O'yinni boshlash</button>
+        </div>
+
+        <div id="gamePlayCard" class="card hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="color: var(--text-muted);">Savol: <strong id="qProgress" style="color: var(--text);">1 / 10</strong></span>
+                <span class="badge badge-purple" id="liveStreakBadge">🔥 Streak: 0</span>
+                <span style="font-weight: 700; font-size: 1.1rem; color: var(--warning);">⏱ <span id="timerText">25</span>s</span>
+            </div>
+            <div class="timer-wrapper"><div class="timer-bar" id="timerBar"></div></div>
+            <h2 id="activeQuestionText" style="margin-bottom: 20px; line-height: 1.4;">Savol matni...</h2>
+            <div class="options-grid" id="activeOptionsContainer"></div>
+        </div>
+
+        <div id="gameResultCard" class="card hidden" style="text-align: center; padding: 40px 20px;">
+            <h2 id="resultTitle" style="margin-bottom: 10px;">Natija</h2>
+            <p id="resultDesc" style="color: var(--text-muted); margin-bottom: 25px; max-width: 500px; margin-left: auto; margin-right: auto;"></p>
+            <button class="btn btn-primary" onclick="resetToStartCard()">Davom etish</button>
+        </div>
+
+        <div class="card">
+            <h3>Guruhingizdagi jonli reyting <button class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="updateStudentDashboard()">🔄 Yangilash</button></h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>O'rin</th>
+                        <th>O'quvchi</th>
+                        <th>Level</th>
+                        <th>Maks. Streak</th>
+                        <th>Ball</th>
+                    </tr>
+                </thead>
+                <tbody id="studentOwnGroupTable"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const SUPABASE_URL = "https://gtcnkxljuetepponnkcn.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_dWAEoJbqG1ZBIXpHVuI-bA_R5wLUVo9";
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const ADMIN_LOGIN = "norboyevblog";
+    const ADMIN_PASS = "12213443";
+
+    let db = {
+        students: [],
+        questions: [],
+        controls: {
+            groups: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true },
+            levels: { 1: true, 2: true, 3: true, 4: true }
+        }
+    };
+
+    let currentStudent = null;
+    let activeGameQuestions = [];
+    let currentQuestionIndex = 0;
+    let timerInterval = null;
+    let timeLeft = 0;
+    let totalQuestionTime = 25;
+
+    function setLoading(state) {
+        document.getElementById('loadingOverlay').classList.toggle('hidden', !state);
+    }
+
+    async function syncFromSupabase() {
+        setLoading(true);
+        try {
+            const [stRes, qRes, ctrlRes] = await Promise.all([
+                sb.from('students').select('*'),
+                sb.from('questions').select('*'),
+                sb.from('game_controls').select('*').eq('id', 1).single()
+            ]);
+
+            if (stRes.error) throw stRes.error;
+            if (qRes.error) throw qRes.error;
+
+            db.students = stRes.data || [];
+            db.questions = qRes.data || [];
+            if (ctrlRes.data) {
+                db.controls.groups = ctrlRes.data.groups;
+                db.controls.levels = ctrlRes.data.levels;
+            }
+        } catch (err) {
+            console.error("Supabase xatosi:", err);
+            alert("Ma'lumotlar bazasiga ulanishda xatolik! SQL jadvallar yaratilganini tekshiring.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function switchAuthTab(type) {
+        document.getElementById('authError').style.display = 'none';
+        if (type === 'student') {
+            document.getElementById('tabStudent').classList.add('active');
+            document.getElementById('tabAdmin').classList.remove('active');
+            document.getElementById('studentLoginForm').classList.remove('hidden');
+            document.getElementById('adminLoginForm').classList.add('hidden');
+        } else {
+            document.getElementById('tabAdmin').classList.add('active');
+            document.getElementById('tabStudent').classList.remove('active');
+            document.getElementById('adminLoginForm').classList.remove('hidden');
+            document.getElementById('studentLoginForm').classList.add('hidden');
+        }
+    }
+
+    async function loginAdmin(e) {
+        e.preventDefault();
+        const login = document.getElementById('adminLoginInput').value.trim();
+        const pass = document.getElementById('adminPassInput').value.trim();
+
+        if (login === ADMIN_LOGIN && pass === ADMIN_PASS) {
+            await syncFromSupabase();
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('adminSection').classList.remove('hidden');
+            document.getElementById('userInfoHeader').classList.remove('hidden');
+            document.getElementById('currentUserName').innerText = "Admin: Norboyev";
+            generateRandomCode();
+            renderQuestions();
+            renderStudents();
+            renderRatings();
+            renderControls();
+        } else {
+            const err = document.getElementById('authError');
+            err.innerText = "Login parol xato!";
+            err.style.display = 'block';
+        }
+    }
+
+    async function loginStudent(e) {
+        e.preventDefault();
+        const code = document.getElementById('studentCodeInput').value.trim();
+        
+        setLoading(true);
+        const { data: found } = await sb
+            .from('students')
+            .select('*')
+            .eq('code', code)
+            .maybeSingle();
+        setLoading(false);
+
+        if (found) {
+            currentStudent = found;
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('studentSection').classList.remove('hidden');
+            document.getElementById('userInfoHeader').classList.remove('hidden');
+            document.getElementById('currentUserName').innerText = `${found.name} (${found.group_num}-Guruh)`;
+            await updateStudentDashboard();
+        } else {
+            const err = document.getElementById('authError');
+            err.innerText = "Login parol xato!";
+            err.style.display = 'block';
+        }
+    }
+
+    function logout() {
+        clearInterval(timerInterval);
+        currentStudent = null;
+        document.getElementById('authSection').classList.remove('hidden');
+        document.getElementById('adminSection').classList.add('hidden');
+        document.getElementById('studentSection').classList.add('hidden');
+        document.getElementById('userInfoHeader').classList.add('hidden');
+        document.getElementById('studentCodeInput').value = '';
+        document.getElementById('adminLoginInput').value = '';
+        document.getElementById('adminPassInput').value = '';
+        document.getElementById('authError').style.display = 'none';
+    }
+
+    async function refreshAdminData() {
+        await syncFromSupabase();
+        renderQuestions();
+        renderStudents();
+        renderRatings();
+        renderControls();
+    }
+
+    function showAdminTab(tabId, btnEl) {
+        document.querySelectorAll('.admin-tab').forEach(el => el.classList.add('hidden'));
+        document.getElementById(tabId).classList.remove('hidden');
+        
+        document.querySelectorAll('.admin-nav .btn').forEach(btn => {
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-outline');
+        });
+        btnEl.classList.remove('btn-outline');
+        btnEl.classList.add('btn-primary');
+
+        if (tabId === 'ratingsTab') renderRatings();
+        if (tabId === 'controlTab') renderControls();
+    }
+
+    function selectAllGroups(state) {
+        document.querySelectorAll('#groupCheckboxes input[type="checkbox"]').forEach(cb => cb.checked = state);
+    }
+
+    async function addQuestion(e) {
+        e.preventDefault();
+        const selectedGroups = [];
+        document.querySelectorAll('#groupCheckboxes input:checked').forEach(cb => {
+            selectedGroups.push(parseInt(cb.value));
+        });
+
+        if (selectedGroups.length === 0) {
+            alert("Kamida bitta guruhni tanlang!");
+            return;
+        }
+
+        const newQ = {
+            level: parseInt(document.getElementById('qLevel').value),
+            time_sec: parseInt(document.getElementById('qTime').value) || 25,
+            fail_count: 0,
+            groups: selectedGroups,
+            text: document.getElementById('qText').value.trim(),
+            options: [
+                document.getElementById('optA').value.trim(),
+                document.getElementById('optB').value.trim(),
+                document.getElementById('optC').value.trim(),
+                document.getElementById('optD').value.trim()
+            ],
+            correct: parseInt(document.getElementById('qCorrect').value)
+        };
+
+        setLoading(true);
+        const { error } = await sb.from('questions').insert([newQ]);
+        if (error) {
+            setLoading(false);
+            alert("Xatolik: " + error.message);
+            return;
+        }
+        await syncFromSupabase();
+        renderQuestions();
+        e.target.reset();
+        document.getElementById('qTime').value = 25;
+        selectAllGroups(true);
+        alert("Savol bazaga saqlandi!");
+    }
+
+    async function deleteQuestion(id) {
+        setLoading(true);
+        await sb.from('questions').delete().eq('id', id);
+        await syncFromSupabase();
+        renderQuestions();
+    }
+
+    function renderQuestions() {
+        const tbody = document.getElementById('questionsListBody');
+        tbody.innerHTML = '';
+        db.questions.forEach(q => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <span class="badge badge-blue">${q.level}-Level</span><br>
+                    <small style="color: var(--warning);">⏱ ${q.time_sec || 25}s</small>
+                </td>
+                <td>${q.text}</td>
+                <td>${(q.groups || []).map(g => g + '-G').join(', ')}</td>
+                <td><button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8rem;" onclick="deleteQuestion(${q.id})">O'chirish</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function generateRandomCode() {
+        const grp = document.getElementById('stGroup').value;
+        const rand = Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('stCode').value = `G${grp}-${rand}`;
+    }
+
+    async function addStudent(e) {
+        e.preventDefault();
+        const group = parseInt(document.getElementById('stGroup').value);
+        const name = document.getElementById('stName').value.trim();
+        const code = document.getElementById('stCode').value.trim();
+
+        const groupCount = db.students.filter(s => s.group_num === group).length;
+        if (groupCount >= 10) {
+            alert(`${group}-guruhda allaqachon 10 ta o'quvchi bor!`);
+            return;
+        }
+
+        if (db.students.some(s => s.code === code)) {
+            alert("Bu kod allaqachon mavjud!");
+            return;
+        }
+
+        setLoading(true);
+        const { error } = await sb.from('students').insert([{
+            group_num: group,
+            name: name,
+            code: code
+        }]);
+
+        if (error) {
+            setLoading(false);
+            alert("Xatolik: " + error.message);
+            return;
+        }
+
+        await syncFromSupabase();
+        renderStudents();
+        document.getElementById('stName').value = '';
+        generateRandomCode();
+    }
+
+    async function deleteStudent(id) {
+        setLoading(true);
+        await sb.from('students').delete().eq('id', id);
+        await syncFromSupabase();
+        renderStudents();
+    }
+
+    function renderStudents() {
+        const tbody = document.getElementById('studentsListBody');
+        tbody.innerHTML = '';
+        [...db.students].sort((a, b) => a.group_num - b.group_num).forEach(s => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="badge badge-blue">${s.group_num}-Guruh</span></td>
+                <td>${s.name}</td>
+                <td><strong>${s.code}</strong></td>
+                <td><button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8rem;" onclick="deleteStudent(${s.id})">O'chirish</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderControls() {
+        const gList = document.getElementById('groupControlList');
+        gList.innerHTML = '';
+        for (let g = 1; g <= 6; g++) {
+            const isOpen = db.controls.groups[g];
+            gList.innerHTML += `
+                <div class="control-box">
+                    <div>
+                        <strong>${g}-Guruh</strong>
+                        <div style="font-size: 0.8rem; color: ${isOpen ? 'var(--success)' : 'var(--danger)'};">
+                            ${isOpen ? '● O‘yin ochiq' : '● Yopiq / Kutilmoqda'}
+                        </div>
+                    </div>
+                    <button class="btn ${isOpen ? 'btn-danger' : 'btn-success'}" onclick="toggleGroupControl(${g})">
+                        ${isOpen ? 'Yopish' : 'Ochish'}
+                    </button>
+                </div>
+            `;
+        }
+
+        const lList = document.getElementById('levelControlList');
+        lList.innerHTML = '';
+        for (let l = 1; l <= 4; l++) {
+            const isOpen = db.controls.levels[l];
+            lList.innerHTML += `
+                <div class="control-box">
+                    <div>
+                        <strong>${l}-Level</strong>
+                        <div style="font-size: 0.8rem; color: ${isOpen ? 'var(--success)' : 'var(--danger)'};">
+                            ${isOpen ? '● O‘quvchilar kirishi mumkin' : '● Kechki darsgacha yopiq'}
+                        </div>
+                    </div>
+                    <button class="btn ${isOpen ? 'btn-danger' : 'btn-success'}" onclick="toggleLevelControl(${l})">
+                        ${isOpen ? 'Yopish' : 'Ochish'}
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    async function toggleGroupControl(g) {
+        db.controls.groups[g] = !db.controls.groups[g];
+        setLoading(true);
+        await sb.from('game_controls').update({ groups: db.controls.groups }).eq('id', 1);
+        setLoading(false);
+        renderControls();
+    }
+
+    async function toggleLevelControl(l) {
+        db.controls.levels[l] = !db.controls.levels[l];
+        setLoading(true);
+        await sb.from('game_controls').update({ levels: db.controls.levels }).eq('id', 1);
+        setLoading(false);
+        renderControls();
+    }
+
+    function renderRatings() {
+        const hardBody = document.getElementById('hardQuestionsBody');
+        hardBody.innerHTML = '';
+        const hardQuestions = db.questions.filter(q => (q.fail_count || 0) > 0).sort((a, b) => b.fail_count - a.fail_count);
+        
+        if (hardQuestions.length === 0) {
+            hardBody.innerHTML = `<tr><td colspan="4" style="color: var(--text-muted); text-align: center;">Hozircha xato qayd etilmagan.</td></tr>`;
+        } else {
+            hardQuestions.forEach(hq => {
+                hardBody.innerHTML += `
+                    <tr>
+                        <td><span class="badge badge-blue">${hq.level}-Level</span></td>
+                        <td><strong>${hq.text}</strong></td>
+                        <td style="color: var(--success);">${hq.options[hq.correct]}</td>
+                        <td><span class="badge badge-red">${hq.fail_count} marta yiqilgan</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        const groupStats = [];
+        for (let g = 1; g <= 6; g++) {
+            const members = db.students.filter(s => s.group_num === g);
+            const totalScore = members.reduce((sum, m) => sum + (m.score || 0), 0);
+            const totalFails = members.reduce((sum, m) => sum + (m.fails || 0), 0);
+            const avgLevel = members.length ? (members.reduce((sum, m) => sum + (m.level || 1), 0) / members.length).toFixed(1) : 0;
+            groupStats.push({ group: g, count: members.length, avgLevel, totalScore, totalFails });
+        }
+
+        groupStats.sort((a, b) => b.totalScore - a.totalScore || a.totalFails - b.totalFails);
+
+        const gBody = document.getElementById('groupRatingBody');
+        gBody.innerHTML = '';
+        groupStats.forEach((gs, idx) => {
+            gBody.innerHTML += `
+                <tr>
+                    <td><strong>#${idx + 1}</strong></td>
+                    <td><span class="badge badge-blue">${gs.group}-Guruh</span></td>
+                    <td>${gs.count} / 10</td>
+                    <td>${gs.avgLevel}-Level</td>
+                    <td><strong style="color: var(--success);">${gs.totalScore} ball</strong></td>
+                    <td><span class="badge ${gs.totalFails === 0 ? 'badge-green' : 'badge-red'}">${gs.totalFails} marta yiqilgan</span></td>
+                </tr>
+            `;
+        });
+
+        const filter = document.getElementById('filterGroupSelect').value;
+        let filteredStudents = [...db.students];
+        if (filter !== 'all') {
+            filteredStudents = filteredStudents.filter(s => s.group_num === parseInt(filter));
+        }
+
+        filteredStudents.sort((a, b) => (b.level || 1) - (a.level || 1) || (b.score || 0) - (a.score || 0));
+
+        const sBody = document.getElementById('studentRatingBody');
+        sBody.innerHTML = '';
+        filteredStudents.forEach((st, idx) => {
+            const mistakes = st.mistakes || [];
+            const mistakesHtml = mistakes.length > 0 
+                ? mistakes.map(m => `<div style="color: #f87171; font-size: 0.82rem;">• [${m.level}-Lvl] ${m.question}</div>`).join('')
+                : `<span style="color: var(--success); font-size: 0.85rem;">Xato qilmagan!</span>`;
+
+            sBody.innerHTML += `
+                <tr>
+                    <td><strong>#${idx + 1}</strong></td>
+                    <td>${st.group_num}-Guruh</td>
+                    <td><strong>${st.name}</strong></td>
+                    <td><span class="badge badge-gold">${st.level}-Level</span></td>
+                    <td><strong style="color: var(--success);">${st.score}</strong></td>
+                    <td>
+                        <span class="badge badge-purple">🔥 Maks: ${st.max_streak || 0}</span><br>
+                        <small style="color: var(--text-muted);">Urinish: ${st.attempts || 0} | Yiqilish: ${st.fails || 0}</small>
+                    </td>
+                    <td>${mistakesHtml}</td>
+                </tr>
+            `;
+        });
+    }
+
+    async function updateStudentDashboard() {
+        await syncFromSupabase();
+        currentStudent = db.students.find(s => s.id === currentStudent.id);
+
+        document.getElementById('stDashboardTitle').innerText = `${currentStudent.group_num}-Guruh | ${currentStudent.name}`;
+        document.getElementById('stCurrentLevel').innerText = currentStudent.level;
+        document.getElementById('stScoreDisplay').innerText = currentStudent.score;
+        document.getElementById('stStreakDisplay').innerText = currentStudent.streak || 0;
+        document.getElementById('stFailsDisplay').innerText = currentStudent.fails || 0;
+
+        const isGroupOpen = db.controls.groups[currentStudent.group_num];
+        const isLevelOpen = db.controls.levels[currentStudent.level] !== false;
+        const startBtn = document.getElementById('startGameBtn');
+
+        if (!isGroupOpen || !isLevelOpen) {
+            document.getElementById('levelReadyTitle').innerText = `⏳ Kechki o'yin hali ochilmagan`;
+            document.getElementById('levelReadyDesc').innerText = !isGroupOpen 
+                ? `Ustozingiz ${currentStudent.group_num}-guruh uchun o'yinni vaqtincha yopib qo'ygan.`
+                : `${currentStudent.level}-Level hali ustoz tomonidan ochilmagan.`;
+            startBtn.disabled = true;
+            startBtn.innerText = "Yopiq (Kutilmoqda)";
+        } else {
+            document.getElementById('levelReadyTitle').innerText = `${currentStudent.level}-Levelga tayyormisiz?`;
+            document.getElementById('levelReadyDesc').innerHTML = `Har bir savol uchun taymer ishlaydi! Qancha tez to'g'ri javob bersangiz, shuncha ko'p <strong>Tezkor Bonus</strong> ball olasiz.`;
+            startBtn.disabled = false;
+            startBtn.innerText = "O'yinni boshlash";
+        }
+
+        const groupMates = db.students
+            .filter(s => s.group_num === currentStudent.group_num)
+            .sort((a, b) => b.level - a.level || b.score - a.score);
+
+        const rank = groupMates.findIndex(s => s.id === currentStudent.id) + 1;
+        document.getElementById('stRankDisplay').innerText = `#${rank} / ${groupMates.length}`;
+
+        const ownTable = document.getElementById('studentOwnGroupTable');
+        ownTable.innerHTML = '';
+        groupMates.forEach((m, i) => {
+            const isMe = m.id === currentStudent.id;
+            ownTable.innerHTML += `
+                <tr style="${isMe ? 'background: rgba(59, 130, 246, 0.15);' : ''}">
+                    <td><strong>#${i + 1}</strong></td>
+                    <td>${m.name} ${isMe ? '(Siz)' : ''}</td>
+                    <td><span class="badge badge-blue">${m.level}-Level</span></td>
+                    <td>🔥 ${m.max_streak || 0}</td>
+                    <td><strong>${m.score}</strong></td>
+                </tr>
+            `;
+        });
+    }
+
+    function shuffleArray(array) {
+        let arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    async function startLevelGame() {
+        await syncFromSupabase();
+        currentStudent = db.students.find(s => s.id === currentStudent.id);
+
+        if (!db.controls.groups[currentStudent.group_num] || db.controls.levels[currentStudent.level] === false) {
+            await updateStudentDashboard();
+            return;
+        }
+
+        let pool = db.questions.filter(q => 
+            (q.groups || []).includes(currentStudent.group_num) && q.level === currentStudent.level
+        );
+
+        if (pool.length === 0) {
+            alert(`Hozircha ${currentStudent.group_num}-guruh uchun ${currentStudent.level}-level savollari qo'shilmagan.`);
+            return;
+        }
+
+        currentStudent.attempts = (currentStudent.attempts || 0) + 1;
+        await sb.from('students').update({ attempts: currentStudent.attempts }).eq('id', currentStudent.id);
+
+        activeGameQuestions = shuffleArray(pool).slice(0, 10);
+        currentQuestionIndex = 0;
+
+        document.getElementById('gameStartCard').classList.add('hidden');
+        document.getElementById('gameResultCard').classList.add('hidden');
+        document.getElementById('gamePlayCard').classList.remove('hidden');
+
+        renderCurrentQuestion();
+    }
+
+    function startQuestionTimer(seconds, questionObj) {
+        clearInterval(timerInterval);
+        totalQuestionTime = seconds;
+        timeLeft = seconds;
+        updateTimerUI();
+
+        timerInterval = setInterval(() => {
+            timeLeft -= 0.25;
+            updateTimerUI();
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                handleTimeout(questionObj);
+            }
+        }, 250);
+    }
+
+    function updateTimerUI() {
+        const displaySec = Math.max(0, Math.ceil(timeLeft));
+        document.getElementById('timerText').innerText = displaySec;
+        const pct = Math.max(0, (timeLeft / totalQuestionTime) * 100);
+        const bar = document.getElementById('timerBar');
+        bar.style.width = pct + '%';
+
+        if (pct > 50) bar.style.backgroundColor = 'var(--success)';
+        else if (pct > 25) bar.style.backgroundColor = 'var(--warning)';
+        else bar.style.backgroundColor = 'var(--danger)';
+    }
+
+    function renderCurrentQuestion() {
+        const q = activeGameQuestions[currentQuestionIndex];
+        document.getElementById('qProgress').innerText = `${currentQuestionIndex + 1} / ${activeGameQuestions.length}`;
+        document.getElementById('liveStreakBadge').innerText = `🔥 Streak: ${currentStudent.streak || 0}`;
+        document.getElementById('activeQuestionText').innerText = q.text;
+
+        const container = document.getElementById('activeOptionsContainer');
+        container.innerHTML = '';
+
+        let mappedOptions = q.options.map((opt, idx) => ({ text: opt, isCorrect: idx === q.correct }));
+        mappedOptions = shuffleArray(mappedOptions);
+
+        mappedOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => {
+                clearInterval(timerInterval);
+                handleAnswer(opt.isCorrect, q);
+            };
+            container.appendChild(btn);
+        });
+
+        startQuestionTimer(q.time_sec || 25, q);
+    }
+
+    async function registerMistakeAndFail(questionObj, reasonText) {
+        currentStudent.streak = 0;
+        currentStudent.fails = (currentStudent.fails || 0) + 1;
+
+        let mistakes = currentStudent.mistakes || [];
+        const alreadyLogged = mistakes.some(m => m.question === questionObj.text);
+        if (!alreadyLogged) {
+            mistakes.push({
+                level: currentStudent.level,
+                question: questionObj.text
+            });
+        }
+        currentStudent.mistakes = mistakes;
+
+        setLoading(true);
+        await Promise.all([
+            sb.from('students').update({
+                streak: 0,
+                fails: currentStudent.fails,
+                mistakes: currentStudent.mistakes
+            }).eq('id', currentStudent.id),
+            sb.from('questions').update({
+                fail_count: (questionObj.fail_count || 0) + 1
+            }).eq('id', questionObj.id)
+        ]);
+        setLoading(false);
+
+        showResult(false, reasonText);
+    }
+
+    async function handleTimeout(questionObj) {
+        await registerMistakeAndFail(
+            questionObj, 
+            `⏱ Vaqt tugadi! Siz "${questionObj.text}" savoliga ulgurmadingiz va ${currentStudent.level}-leveldan yiqildingiz.`
+        );
+    }
+
+    async function handleAnswer(isCorrect, questionObj) {
+        if (isCorrect) {
+            const speedBonus = Math.max(0, Math.round(timeLeft));
+            currentStudent.score = (currentStudent.score || 0) + (10 + speedBonus);
+            currentStudent.streak = (currentStudent.streak || 0) + 1;
+            if (currentStudent.streak > (currentStudent.max_streak || 0)) {
+                currentStudent.max_streak = currentStudent.streak;
+            }
+
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex >= activeGameQuestions.length) {
+                currentStudent.level += 1;
+                setLoading(true);
+                await sb.from('students').update({
+                    level: currentStudent.level,
+                    score: currentStudent.score,
+                    streak: currentStudent.streak,
+                    max_streak: currentStudent.max_streak
+                }).eq('id', currentStudent.id);
+                setLoading(false);
+
+                showResult(true, `Ajoyib! Siz ${currentStudent.level - 1}-levelni yakunladingiz va ${currentStudent.level}-levelga o'tdingiz! (Joriy Streak: ${currentStudent.streak})`);
+            } else {
+                sb.from('students').update({
+                    score: currentStudent.score,
+                    streak: currentStudent.streak,
+                    max_streak: currentStudent.max_streak
+                }).eq('id', currentStudent.id);
+
+                renderCurrentQuestion();
+            }
+        } else {
+            await registerMistakeAndFail(
+                questionObj,
+                `❌ Xato javob! Siz ${currentStudent.level}-leveldan yiqildingiz. Qayta urinib ko'ring — savollar o'rni almashib keladi!`
+            );
+        }
+    }
+
+    async function showResult(isWin, message) {
+        document.getElementById('gamePlayCard').classList.add('hidden');
+        const resCard = document.getElementById('gameResultCard');
+        resCard.classList.remove('hidden');
+
+        const title = document.getElementById('resultTitle');
+        title.innerText = isWin ? "🎉 Level Yakunlandi!" : "Yiqildingiz!";
+        title.style.color = isWin ? "var(--success)" : "var(--danger)";
+        document.getElementById('resultDesc').innerText = message;
+
+        await updateStudentDashboard();
+    }
+
+    async function resetToStartCard() {
+        document.getElementById('gameResultCard').classList.add('hidden');
+        document.getElementById('gameStartCard').classList.remove('hidden');
+        await updateStudentDashboard();
+    }
+</script>
+
+</body>
+</html>
