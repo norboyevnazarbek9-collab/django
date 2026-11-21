@@ -3,269 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NORBOYEV ACADEMY — Online O'yin Platformasi</title>
+    <title>DJANGO GAME — Bilim jangi</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --card-hover: #334155;
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --purple: #8b5cf6;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
+            --bg: #0b0a1f;
+            --bg2: #14122e;
+            --card: rgba(255, 255, 255, 0.06);
+            --card-solid: #1a1838;
+            --card-hover: rgba(255, 255, 255, 0.1);
+            --primary: #7c5cff;
+            --primary-hover: #6a47f5;
+            --pink: #ff4fa3;
+            --cyan: #22d3ee;
+            --success: #22c55e;
+            --danger: #ff4d6d;
+            --warning: #fbbf24;
+            --purple: #a78bfa;
+            --text: #f5f3ff;
+            --text-muted: #a5a3c7;
+            --border: rgba(255, 255, 255, 0.12);
+            --grad: linear-gradient(135deg, #7c5cff 0%, #ff4fa3 100%);
+            --grad2: linear-gradient(135deg, #22d3ee 0%, #7c5cff 100%);
+            --grad-success: linear-gradient(135deg, #22c55e 0%, #14b8a6 100%);
+            --grad-danger: linear-gradient(135deg, #ff4d6d 0%, #f97316 100%);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif; }
+
+        html { scroll-behavior: smooth; }
 
         body {
-            background-color: var(--bg);
+            background: var(--bg);
             color: var(--text);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
         }
+
+        /* Harakatlanuvchi fon */
+        .bg-blobs { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.45; animation: float 14s ease-in-out infinite; }
+        .blob.b1 { width: 420px; height: 420px; background: #7c5cff; top: -120px; left: -100px; }
+        .blob.b2 { width: 360px; height: 360px; background: #ff4fa3; bottom: -120px; right: -80px; animation-delay: -5s; }
+        .blob.b3 { width: 300px; height: 300px; background: #22d3ee; top: 40%; left: 55%; opacity: 0.25; animation-delay: -9s; }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -50px) scale(1.12); }
+        }
+
+        header, .container { position: relative; z-index: 1; }
 
         header {
-            background: var(--card);
+            background: rgba(11, 10, 31, 0.7);
+            backdrop-filter: blur(14px);
             border-bottom: 1px solid var(--border);
-            padding: 15px 30px;
+            padding: 14px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
         }
 
-        .logo {
-            font-size: 1.4rem;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: var(--primary);
+        .logo { display: flex; align-items: center; gap: 12px; font-size: 1.35rem; font-weight: 900; letter-spacing: 1px; }
+        .logo-icon {
+            width: 42px; height: 42px; border-radius: 12px; background: var(--grad);
+            display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+            box-shadow: 0 6px 20px rgba(124, 92, 255, 0.5);
+            animation: pulseGlow 2.5s ease-in-out infinite;
+        }
+        .logo-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo-text span { color: var(--text); -webkit-text-fill-color: var(--text); font-weight: 600; }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 6px 20px rgba(124, 92, 255, 0.5); }
+            50% { box-shadow: 0 6px 30px rgba(255, 79, 163, 0.7); }
         }
 
-        .logo span { color: var(--text); }
+        .user-chip { display: flex; align-items: center; gap: 10px; }
+        #currentUserName { font-weight: 600; font-size: 0.92rem; background: var(--card); border: 1px solid var(--border); padding: 8px 14px; border-radius: 30px; }
 
         .btn {
-            padding: 10px 18px;
+            padding: 11px 20px;
             border: none;
-            border-radius: 8px;
-            font-weight: 600;
+            border-radius: 12px;
+            font-weight: 700;
             cursor: pointer;
-            transition: 0.2s;
+            transition: transform 0.15s, box-shadow 0.2s, background 0.2s, opacity 0.2s;
             font-size: 0.92rem;
+            color: white;
         }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); }
+        .btn:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .btn-primary { background: var(--grad); box-shadow: 0 6px 18px rgba(124, 92, 255, 0.4); }
+        .btn-primary:hover:not(:disabled) { box-shadow: 0 10px 26px rgba(255, 79, 163, 0.45); }
+        .btn-success { background: var(--grad-success); box-shadow: 0 6px 18px rgba(34, 197, 94, 0.35); }
+        .btn-danger { background: var(--grad-danger); box-shadow: 0 6px 18px rgba(255, 77, 109, 0.35); }
+        .btn-outline { background: var(--card); border: 1px solid var(--border); color: var(--text); backdrop-filter: blur(8px); }
+        .btn-outline:hover:not(:disabled) { background: var(--card-hover); border-color: var(--primary); }
 
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-        .btn-outline:hover { background: var(--card-hover); }
+        .container { max-width: 1250px; width: 100%; margin: 28px auto; padding: 0 20px; flex: 1; }
 
-        .container {
-            max-width: 1250px;
-            width: 100%;
-            margin: 25px auto;
-            padding: 0 20px;
-            flex: 1;
-        }
-
+        /* Yuklanish */
         #loadingOverlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--primary);
+            position: fixed; inset: 0; background: rgba(11, 10, 31, 0.85); backdrop-filter: blur(6px);
+            display: flex; flex-direction: column; gap: 16px; justify-content: center; align-items: center;
+            z-index: 9999; font-size: 1.05rem; font-weight: 600; color: var(--text);
         }
+        .spinner {
+            width: 54px; height: 54px; border-radius: 50%;
+            border: 5px solid rgba(255, 255, 255, 0.12); border-top-color: var(--pink); border-right-color: var(--primary);
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* Kirish oynasi */
         .auth-wrapper {
-            max-width: 450px;
-            margin: 50px auto;
-            background: var(--card);
-            padding: 30px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            max-width: 460px; margin: 40px auto; background: var(--card); backdrop-filter: blur(18px);
+            padding: 34px 30px; border-radius: 24px; border: 1px solid var(--border);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45); animation: rise 0.6s ease;
         }
+        .auth-hero { text-align: center; margin-bottom: 24px; }
+        .auth-hero .big { font-size: 3.2rem; animation: bounce 2s ease-in-out infinite; display: inline-block; }
+        .auth-hero h1 { font-size: 1.9rem; font-weight: 900; margin-top: 4px; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .auth-hero p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 
-        .tabs {
-            display: flex;
-            margin-bottom: 25px;
-            background: var(--bg);
-            padding: 5px;
-            border-radius: 10px;
-        }
-
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            cursor: pointer;
-            border-radius: 8px;
-            font-weight: 600;
-            color: var(--text-muted);
-            transition: 0.2s;
-        }
-
-        .tab.active { background: var(--primary); color: white; }
+        .tabs { display: flex; margin-bottom: 24px; background: rgba(0, 0, 0, 0.3); padding: 5px; border-radius: 14px; }
+        .tab { flex: 1; text-align: center; padding: 11px; cursor: pointer; border-radius: 10px; font-weight: 600; color: var(--text-muted); transition: 0.25s; font-size: 0.92rem; }
+        .tab.active { background: var(--grad); color: white; box-shadow: 0 4px 14px rgba(124, 92, 255, 0.4); }
 
         .form-group { margin-bottom: 16px; }
-        label { display: block; margin-bottom: 6px; font-size: 0.88rem; color: var(--text-muted); }
+        label { display: block; margin-bottom: 7px; font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
 
         input, select, textarea {
-            width: 100%;
-            padding: 11px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            font-size: 0.98rem;
+            width: 100%; padding: 13px 14px; background: rgba(0, 0, 0, 0.3); border: 1.5px solid var(--border);
+            border-radius: 12px; color: var(--text); font-size: 0.97rem; transition: 0.2s;
         }
-
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        select option { background: var(--card-solid); color: var(--text); }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.2); }
+        input::placeholder, textarea::placeholder { color: rgba(165, 163, 199, 0.6); }
 
         .error-msg {
-            color: var(--danger);
-            background: rgba(239, 68, 68, 0.1);
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-            display: none;
-            text-align: center;
+            color: #ff9aae; background: rgba(255, 77, 109, 0.12); border: 1px solid rgba(255, 77, 109, 0.3);
+            padding: 11px; border-radius: 12px; margin-bottom: 16px; font-size: 0.9rem; display: none; text-align: center;
         }
 
-        .admin-nav {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
+        /* Admin */
+        .admin-nav { display: flex; gap: 10px; margin-bottom: 26px; flex-wrap: wrap; }
 
         .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: var(--card); backdrop-filter: blur(14px); border: 1px solid var(--border);
+            border-radius: 20px; padding: 24px; margin-bottom: 22px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            animation: rise 0.45s ease;
         }
-
         .card h3 {
-            margin-bottom: 15px;
-            color: var(--primary);
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            margin-bottom: 18px; font-size: 1.05rem; font-weight: 700; padding-bottom: 12px;
+            border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
         }
 
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+        @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
 
         .group-checkboxes {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            background: var(--bg);
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            background: rgba(0, 0, 0, 0.25); padding: 12px; border-radius: 12px; border: 1px solid var(--border);
         }
-
-        .checkbox-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; }
-        .checkbox-item input { width: auto; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        th { color: var(--text-muted); font-weight: 600; background: rgba(15, 23, 42, 0.5); }
-
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; display: inline-block; }
-        .badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-        .badge-green { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-        .badge-red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-        .badge-gold { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-        .badge-purple { background: rgba(139, 92, 246, 0.2); color: #c084fc; }
-
-        .timer-wrapper {
-            width: 100%;
-            height: 10px;
-            background: var(--bg);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 15px;
-            border: 1px solid var(--border);
+        .checkbox-item {
+            display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; color: var(--text);
+            background: var(--card); padding: 8px 10px; border-radius: 10px; margin: 0;
         }
+        .checkbox-item input { width: auto; accent-color: var(--primary); }
 
-        .timer-bar { height: 100%; width: 100%; background: var(--success); transition: width 0.25s linear, background-color 0.3s; }
+        table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+        th, td { padding: 13px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+        th { color: var(--text-muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        tbody tr { transition: background 0.2s; }
+        tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
 
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 15px;
-        }
+        .badge { padding: 5px 12px; border-radius: 30px; font-size: 0.78rem; font-weight: 700; display: inline-block; }
+        .badge-blue { background: rgba(34, 211, 238, 0.15); color: #67e8f9; border: 1px solid rgba(34, 211, 238, 0.25); }
+        .badge-green { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); }
+        .badge-red { background: rgba(255, 77, 109, 0.15); color: #ff8fa3; border: 1px solid rgba(255, 77, 109, 0.25); }
+        .badge-gold { background: rgba(251, 191, 36, 0.15); color: #fcd34d; border: 1px solid rgba(251, 191, 36, 0.25); }
+        .badge-purple { background: rgba(167, 139, 250, 0.15); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.25); }
 
-        .stat-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        @media (max-width: 600px) { .options-grid { grid-template-columns: 1fr; } }
-
-        .option-btn {
-            background: var(--bg);
-            border: 2px solid var(--border);
-            color: var(--text);
-            padding: 16px;
-            border-radius: 10px;
-            text-align: left;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .option-btn:hover { border-color: var(--primary); background: rgba(59, 130, 246, 0.1); }
+        .rank-medal { font-size: 1.25rem; font-weight: 800; }
 
         .control-box {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            padding: 15px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border); padding: 16px;
+            border-radius: 14px; display: flex; justify-content: space-between; align-items: center;
         }
 
+        /* O'quvchi paneli */
+        .game-header {
+            background: var(--grad); padding: 26px; border-radius: 24px; margin-bottom: 22px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+            box-shadow: 0 16px 40px rgba(124, 92, 255, 0.35); position: relative; overflow: hidden; animation: rise 0.5s ease;
+        }
+        .game-header::after {
+            content: ''; position: absolute; width: 260px; height: 260px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12); right: -60px; top: -100px;
+        }
+        .game-header > * { position: relative; z-index: 1; }
+        .game-header h2 { font-size: 1.4rem; font-weight: 800; }
+        .stat-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .stat-pills .badge { background: rgba(0, 0, 0, 0.3); color: white; border: 1px solid rgba(255, 255, 255, 0.2); font-size: 0.82rem; padding: 7px 14px; }
+        .level-pill { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.25); padding: 10px 20px; border-radius: 30px; font-weight: 800; font-size: 1.05rem; display: inline-block; }
+        .score-big { margin-top: 10px; font-weight: 900; font-size: 1.7rem; }
+        .score-big small { font-size: 0.8rem; font-weight: 600; opacity: 0.85; }
+
+        .start-card { text-align: center; padding: 48px 24px !important; }
+        .start-card .emoji { font-size: 4rem; display: inline-block; animation: bounce 2s ease-in-out infinite; }
+        .start-card h2 { font-size: 1.7rem; font-weight: 800; margin: 10px 0; }
+        .start-card p { color: var(--text-muted); max-width: 520px; margin: 0 auto 28px; line-height: 1.6; }
+        .start-card p strong { color: var(--warning); }
+        .btn-big { font-size: 1.1rem; padding: 16px 38px; border-radius: 16px; animation: pulseBtn 2s ease-in-out infinite; }
+        .btn-big:disabled { animation: none; }
+        @keyframes pulseBtn {
+            0%, 100% { box-shadow: 0 6px 18px rgba(124, 92, 255, 0.4); }
+            50% { box-shadow: 0 6px 34px rgba(255, 79, 163, 0.7); }
+        }
+
+        /* O'yin */
+        .play-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+        .play-top .q-count { color: var(--text-muted); font-size: 0.92rem; }
+        .play-top .q-count strong { color: var(--text); font-size: 1.05rem; }
+        .timer-chip { font-weight: 800; font-size: 1.15rem; color: var(--warning); background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.3); padding: 6px 16px; border-radius: 30px; }
+
+        .progress-dots { display: flex; gap: 6px; margin-bottom: 14px; }
+        .progress-dots .dot { flex: 1; height: 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.12); transition: 0.3s; }
+        .progress-dots .dot.done { background: var(--grad-success); }
+        .progress-dots .dot.current { background: var(--grad); animation: blink 1s ease-in-out infinite; }
+        @keyframes blink { 50% { opacity: 0.45; } }
+
+        .timer-wrapper { width: 100%; height: 12px; background: rgba(0, 0, 0, 0.35); border-radius: 12px; overflow: hidden; margin-bottom: 22px; border: 1px solid var(--border); }
+        .timer-bar { height: 100%; width: 100%; background: var(--success); border-radius: 12px; transition: width 0.25s linear, background-color 0.3s; }
+
+        #activeQuestionText { font-size: 1.35rem; font-weight: 700; line-height: 1.45; margin-bottom: 8px; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 22px; }
+        @media (max-width: 650px) { .options-grid { grid-template-columns: 1fr; } }
+
+        .option-btn {
+            background: rgba(0, 0, 0, 0.3); border: 2px solid var(--border); color: var(--text);
+            padding: 16px; border-radius: 16px; text-align: left; font-size: 1rem; cursor: pointer;
+            transition: 0.2s; display: flex; align-items: center; gap: 14px; font-weight: 500;
+        }
+        .option-btn .letter {
+            min-width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+            font-weight: 800; color: white; flex-shrink: 0;
+        }
+        .option-btn:nth-child(1) .letter { background: linear-gradient(135deg, #7c5cff, #6366f1); }
+        .option-btn:nth-child(2) .letter { background: linear-gradient(135deg, #ff4fa3, #ec4899); }
+        .option-btn:nth-child(3) .letter { background: linear-gradient(135deg, #22d3ee, #0ea5e9); }
+        .option-btn:nth-child(4) .letter { background: linear-gradient(135deg, #fbbf24, #f97316); }
+        .option-btn:hover:not(:disabled) { border-color: var(--primary); background: rgba(124, 92, 255, 0.15); transform: translateY(-3px); box-shadow: 0 10px 24px rgba(124, 92, 255, 0.25); }
+        .option-btn:disabled { cursor: default; }
+        .option-btn.picked { border-color: var(--warning); background: rgba(251, 191, 36, 0.12); }
+
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .result-card { text-align: center; padding: 48px 24px !important; }
+        .result-card .res-emoji { font-size: 4.5rem; display: inline-block; animation: bounce 1.6s ease-in-out infinite; }
+        .result-card h2 { font-size: 1.8rem; font-weight: 800; margin: 10px 0; }
+        .result-card p { color: var(--text-muted); max-width: 520px; margin: 0 auto 26px; line-height: 1.6; }
+
+        /* Custom modal (alert o'rniga) */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(11, 10, 31, 0.8); backdrop-filter: blur(6px);
+            display: flex; justify-content: center; align-items: center; z-index: 10000; padding: 20px; animation: fadeIn 0.2s ease;
+        }
+        .modal-box {
+            background: var(--card-solid); border: 1px solid var(--border); border-radius: 24px; padding: 32px 26px 24px;
+            max-width: 400px; width: 100%; text-align: center; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6); animation: popIn 0.3s cubic-bezier(.2, 1.4, .4, 1);
+        }
+        .modal-icon { font-size: 3rem; margin-bottom: 12px; }
+        .modal-text { color: var(--text); font-size: 1.02rem; line-height: 1.55; margin-bottom: 22px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        #confettiCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 9000; }
+
         .hidden { display: none !important; }
+
+        footer { position: relative; z-index: 1; text-align: center; padding: 18px; color: var(--text-muted); font-size: 0.8rem; }
+
+        @media (max-width: 600px) {
+            header { padding: 12px 14px; }
+            .logo { font-size: 1.05rem; }
+            .logo-icon { width: 36px; height: 36px; font-size: 1.2rem; }
+            #currentUserName { font-size: 0.78rem; padding: 6px 10px; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .card { padding: 16px; }
+            #activeQuestionText { font-size: 1.15rem; }
+        }
     </style>
 </head>
 <body>
 
-<div id="loadingOverlay" class="hidden">⏳ Ma'lumotlar bazasi bilan bog'lanilmoqda...</div>
+<div class="bg-blobs"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<canvas id="confettiCanvas"></canvas>
+
+<div id="loadingOverlay" class="hidden"><div class="spinner"></div><div>Yuklanmoqda...</div></div>
+
+<div id="customModal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="modal-icon" id="modalIcon">ℹ️</div>
+        <div class="modal-text" id="modalText"></div>
+        <button class="btn btn-primary" style="width: 100%;" onclick="closeModal()">Tushunarli</button>
+    </div>
+</div>
 
 <header>
-    <div class="logo">NORBOYEV <span>ACADEMY</span></div>
-    <div id="userInfoHeader" class="hidden">
-        <span id="currentUserName" style="margin-right: 15px; font-weight: 600;"></span>
+    <div class="logo">
+        <div class="logo-icon">🎮</div>
+        <div class="logo-text">DJANGO <span>GAME</span></div>
+    </div>
+    <div id="userInfoHeader" class="user-chip hidden">
+        <span id="currentUserName"></span>
         <button class="btn btn-danger" onclick="logout()">Chiqish</button>
     </div>
 </header>
@@ -273,9 +341,15 @@
 <div class="container">
 
     <div id="authSection" class="auth-wrapper">
+        <div class="auth-hero">
+            <div class="big">🚀</div>
+            <h1>DJANGO GAME</h1>
+            <p>Bilimingni sina, levellardan o't va birinchi bo'l!</p>
+        </div>
+
         <div class="tabs">
-            <div class="tab active" id="tabStudent" onclick="switchAuthTab('student')">O'quvchi kirishi</div>
-            <div class="tab" id="tabAdmin" onclick="switchAuthTab('admin')">Admin kirishi</div>
+            <div class="tab active" id="tabStudent" onclick="switchAuthTab('student')">🎓 O'quvchi</div>
+            <div class="tab" id="tabAdmin" onclick="switchAuthTab('admin')">🛡️ Admin</div>
         </div>
 
         <div id="authError" class="error-msg">Login parol xato!</div>
@@ -283,43 +357,43 @@
         <form id="studentLoginForm" onsubmit="loginStudent(event)">
             <div class="form-group">
                 <label>Maxsus kirish kodingiz (Admin bergan kod)</label>
-                <input type="text" id="studentCodeInput" placeholder="Masalan: G1-101" required>
+                <input type="text" id="studentCodeInput" placeholder="Masalan: G1-1012" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" required>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%;">O'yinga kirish</button>
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">🎮 O'yinga kirish</button>
         </form>
 
         <form id="adminLoginForm" class="hidden" onsubmit="loginAdmin(event)">
             <div class="form-group">
                 <label>Admin Login</label>
-                <input type="text" id="adminLoginInput" placeholder="Loginni kiriting" required>
+                <input type="text" id="adminLoginInput" placeholder="Loginni kiriting" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" required>
             </div>
             <div class="form-group">
                 <label>Parol</label>
                 <input type="password" id="adminPassInput" placeholder="Parolni kiriting" required>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Admin panelga kirish</button>
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">Admin panelga kirish</button>
         </form>
     </div>
 
     <div id="adminSection" class="hidden">
         <div class="admin-nav">
-            <button class="btn btn-primary" onclick="showAdminTab('questionsTab', this)">1. Savol Yaratish</button>
-            <button class="btn btn-outline" onclick="showAdminTab('studentsTab', this)">2. O'quvchilar va Kodlar</button>
-            <button class="btn btn-outline" onclick="showAdminTab('ratingsTab', this)">3. Reyting va Qiyin Savollar</button>
-            <button class="btn btn-outline" onclick="showAdminTab('controlTab', this)">4. Kechki O'yin Nazorati</button>
+            <button class="btn btn-primary" onclick="showAdminTab('questionsTab', this)">❓ Savol yaratish</button>
+            <button class="btn btn-outline" onclick="showAdminTab('studentsTab', this)">👥 O'quvchilar va kodlar</button>
+            <button class="btn btn-outline" onclick="showAdminTab('ratingsTab', this)">🏆 Reyting va qiyin savollar</button>
+            <button class="btn btn-outline" onclick="showAdminTab('controlTab', this)">🎛️ Kechki o'yin nazorati</button>
             <button class="btn btn-outline" style="margin-left: auto;" onclick="refreshAdminData()">🔄 Yangilash</button>
         </div>
 
         <div id="questionsTab" class="admin-tab">
             <div class="grid-2">
                 <div class="card">
-                    <h3>Yangi savol qo'shish</h3>
+                    <h3>✍️ Yangi savol qo'shish</h3>
                     <form onsubmit="addQuestion(event)">
                         <div class="form-group">
                             <label>Qaysi guruhlarga bermoqchisiz?</label>
-                            <div style="margin-bottom: 8px;">
-                                <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="selectAllGroups(true)">Barcha 6 guruhni tanlash</button>
-                                <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="selectAllGroups(false)">Tozalash</button>
+                            <div style="margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem;" onclick="selectAllGroups(true)">Barcha 6 guruhni tanlash</button>
+                                <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem;" onclick="selectAllGroups(false)">Tozalash</button>
                             </div>
                             <div class="group-checkboxes" id="groupCheckboxes">
                                 <label class="checkbox-item"><input type="checkbox" value="1" checked> 1-Guruh</label>
@@ -369,13 +443,13 @@
                             </select>
                         </div>
 
-                        <button type="submit" class="btn btn-success" style="width: 100%;">Savolni saqlash va yuborish</button>
+                        <button type="submit" class="btn btn-success" style="width: 100%; padding: 14px;">💾 Savolni saqlash va yuborish</button>
                     </form>
                 </div>
 
                 <div class="card">
-                    <h3>Bazadagi savollar ro'yxati</h3>
-                    <div style="max-height: 580px; overflow-y: auto;">
+                    <h3>📚 Bazadagi savollar ro'yxati</h3>
+                    <div style="max-height: 620px; overflow-y: auto;">
                         <table>
                             <thead>
                                 <tr>
@@ -395,7 +469,7 @@
         <div id="studentsTab" class="admin-tab hidden">
             <div class="grid-2">
                 <div class="card">
-                    <h3>Yangi o'quvchi qo'shish va kod yaratish</h3>
+                    <h3>➕ Yangi o'quvchi qo'shish va kod yaratish</h3>
                     <form onsubmit="addStudent(event)">
                         <div class="form-group">
                             <label>Guruhni tanlang (Har birida 10 tagacha o'quvchi)</label>
@@ -416,22 +490,22 @@
                             <label>Kirish kodi</label>
                             <div style="display: flex; gap: 10px;">
                                 <input type="text" id="stCode" required>
-                                <button type="button" class="btn btn-outline" onclick="generateRandomCode()">Kod yaratish</button>
+                                <button type="button" class="btn btn-outline" style="white-space: nowrap;" onclick="generateRandomCode()">🎲 Kod yaratish</button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">O'quvchini qo'shish</button>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">O'quvchini qo'shish</button>
                     </form>
                 </div>
 
                 <div class="card">
-                    <h3>Ro'yxatdan o'tgan o'quvchilar (6 Guruh)</h3>
+                    <h3>👥 Ro'yxatdan o'tgan o'quvchilar (6 guruh)</h3>
                     <div style="max-height: 450px; overflow-y: auto;">
                         <table>
                             <thead>
                                 <tr>
                                     <th>Guruh</th>
                                     <th>Ism</th>
-                                    <th>Kirish Kodi</th>
+                                    <th>Kirish kodi</th>
                                     <th>Amal</th>
                                 </tr>
                             </thead>
@@ -443,41 +517,45 @@
         </div>
 
         <div id="ratingsTab" class="admin-tab hidden">
-            <div class="card" style="border-color: rgba(239, 68, 68, 0.4);">
-                <h3 style="color: #f87171;">⚠️ "Qiyin Savollar" Ogohlantirishi (Eng ko'p xato qilingan savollar)</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Level</th>
-                            <th>Savol matni</th>
-                            <th>To'g'ri javob</th>
-                            <th>Xato qilingan soni</th>
-                        </tr>
-                    </thead>
-                    <tbody id="hardQuestionsBody"></tbody>
-                </table>
+            <div class="card" style="border-color: rgba(255, 77, 109, 0.4);">
+                <h3 style="color: #ff8fa3;">⚠️ "Qiyin savollar" ogohlantirishi (eng ko'p xato qilinganlar)</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Level</th>
+                                <th>Savol matni</th>
+                                <th>To'g'ri javob</th>
+                                <th>Xato qilingan soni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hardQuestionsBody"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="card">
-                <h3>🏆 Guruhlar Reytingi</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>O'rin</th>
-                            <th>Guruh</th>
-                            <th>O'quvchilar</th>
-                            <th>O'rtacha Level</th>
-                            <th>Jami Ball</th>
-                            <th>Yiqilishlar soni</th>
-                        </tr>
-                    </thead>
-                    <tbody id="groupRatingBody"></tbody>
-                </table>
+                <h3>🏆 Guruhlar reytingi</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>O'rin</th>
+                                <th>Guruh</th>
+                                <th>O'quvchilar</th>
+                                <th>O'rtacha level</th>
+                                <th>Jami ball</th>
+                                <th>Yiqilishlar soni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="groupRatingBody"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="border: none; margin: 0; padding: 0;">📊 O'quvchilar Reytingi, Streak va Xatolar</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="border: none; margin: 0; padding: 0;">📊 O'quvchilar reytingi, streak va xatolar</h3>
                     <select id="filterGroupSelect" style="width: 200px;" onchange="renderRatings()">
                         <option value="all">Barcha guruhlar</option>
                         <option value="1">1-Guruh</option>
@@ -497,7 +575,7 @@
                                 <th>O'quvchi</th>
                                 <th>Level</th>
                                 <th>Ball</th>
-                                <th>Maks. Streak / Urinishlar</th>
+                                <th>Maks. streak / urinishlar</th>
                                 <th>Qaysi savollarda xato qilgan?</th>
                             </tr>
                         </thead>
@@ -510,11 +588,11 @@
         <div id="controlTab" class="admin-tab hidden">
             <div class="grid-2">
                 <div class="card">
-                    <h3>Guruhlar uchun o'yin holati</h3>
+                    <h3>👥 Guruhlar uchun o'yin holati</h3>
                     <div style="display: flex; flex-direction: column; gap: 10px;" id="groupControlList"></div>
                 </div>
                 <div class="card">
-                    <h3>Levellarni ochish / yopish</h3>
+                    <h3>🔓 Levellarni ochish / yopish</h3>
                     <div style="display: flex; flex-direction: column; gap: 10px;" id="levelControlList"></div>
                 </div>
             </div>
@@ -526,62 +604,135 @@
             <div>
                 <h2 id="stDashboardTitle">1-Guruh</h2>
                 <div class="stat-pills">
-                    <span class="badge badge-gold">O'rningiz: <strong id="stRankDisplay">#1</strong></span>
+                    <span class="badge badge-gold">🏅 O'rningiz: <strong id="stRankDisplay">#1</strong></span>
                     <span class="badge badge-purple">🔥 Streak: <strong id="stStreakDisplay">0</strong></span>
-                    <span class="badge badge-red">Yiqilishlar: <strong id="stFailsDisplay">0</strong></span>
+                    <span class="badge badge-red">💥 Yiqilishlar: <strong id="stFailsDisplay">0</strong></span>
                 </div>
             </div>
             <div style="text-align: right;">
-                <span class="badge badge-blue" style="font-size: 1rem; padding: 8px 15px;">Joriy Level: <span id="stCurrentLevel">1</span></span>
-                <div style="margin-top: 8px; font-weight: 700; color: var(--success); font-size: 1.1rem;">Ball: <span id="stScoreDisplay">0</span></div>
+                <span class="level-pill">⭐ Level: <span id="stCurrentLevel">1</span></span>
+                <div class="score-big"><span id="stScoreDisplay">0</span> <small>ball</small></div>
             </div>
         </div>
 
-        <div id="gameStartCard" class="card" style="text-align: center; padding: 40px 20px;">
-            <h2 id="levelReadyTitle" style="margin-bottom: 10px;">1-Levelga tayyormisiz?</h2>
-            <p id="levelReadyDesc" style="color: var(--text-muted); max-width: 550px; margin: 0 auto 25px;">
+        <div id="gameStartCard" class="card start-card">
+            <div class="emoji">🎯</div>
+            <h2 id="levelReadyTitle">1-Levelga tayyormisiz?</h2>
+            <p id="levelReadyDesc">
                 Har bir savol uchun taymer ishlaydi! Qancha tez to'g'ri javob bersangiz, shuncha ko'p <strong>Tezkor Bonus</strong> ball olasiz.
             </p>
-            <button id="startGameBtn" class="btn btn-primary" style="font-size: 1.1rem; padding: 14px 30px;" onclick="startLevelGame()">O'yinni boshlash</button>
+            <button id="startGameBtn" class="btn btn-primary btn-big" onclick="startLevelGame()">🚀 O'yinni boshlash</button>
         </div>
 
         <div id="gamePlayCard" class="card hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="color: var(--text-muted);">Savol: <strong id="qProgress" style="color: var(--text);">1 / 10</strong></span>
+            <div class="play-top">
+                <span class="q-count">Savol: <strong id="qProgress">1 / 10</strong></span>
                 <span class="badge badge-purple" id="liveStreakBadge">🔥 Streak: 0</span>
-                <span style="font-weight: 700; font-size: 1.1rem; color: var(--warning);">⏱ <span id="timerText">25</span>s</span>
+                <span class="timer-chip">⏱ <span id="timerText">25</span>s</span>
             </div>
+            <div class="progress-dots" id="progressDots"></div>
             <div class="timer-wrapper"><div class="timer-bar" id="timerBar"></div></div>
-            <h2 id="activeQuestionText" style="margin-bottom: 20px; line-height: 1.4;">Savol matni...</h2>
+            <h2 id="activeQuestionText">Savol matni...</h2>
             <div class="options-grid" id="activeOptionsContainer"></div>
         </div>
 
-        <div id="gameResultCard" class="card hidden" style="text-align: center; padding: 40px 20px;">
-            <h2 id="resultTitle" style="margin-bottom: 10px;">Natija</h2>
-            <p id="resultDesc" style="color: var(--text-muted); margin-bottom: 25px; max-width: 500px; margin-left: auto; margin-right: auto;"></p>
-            <button class="btn btn-primary" onclick="resetToStartCard()">Davom etish</button>
+        <div id="gameResultCard" class="card result-card hidden">
+            <div class="res-emoji" id="resultEmoji">🎉</div>
+            <h2 id="resultTitle">Natija</h2>
+            <p id="resultDesc"></p>
+            <button class="btn btn-primary btn-big" style="animation: none;" onclick="resetToStartCard()">Davom etish ➜</button>
         </div>
 
         <div class="card">
-            <h3>Guruhingizdagi jonli reyting <button class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="updateStudentDashboard()">🔄 Yangilash</button></h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>O'rin</th>
-                        <th>O'quvchi</th>
-                        <th>Level</th>
-                        <th>Maks. Streak</th>
-                        <th>Ball</th>
-                    </tr>
-                </thead>
-                <tbody id="studentOwnGroupTable"></tbody>
-            </table>
+            <h3>🏆 Guruhingizdagi jonli reyting <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem;" onclick="updateStudentDashboard()">🔄 Yangilash</button></h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>O'rin</th>
+                            <th>O'quvchi</th>
+                            <th>Level</th>
+                            <th>Maks. streak</th>
+                            <th>Ball</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentOwnGroupTable"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
 </div>
 
+<footer>© DJANGO GAME — Norboyev Academy</footer>
+
 <script>
+    /* ===== Chiroyli xabar oynasi (alert o'rniga) ===== */
+    function closeModal() {
+        document.getElementById('customModal').classList.add('hidden');
+    }
+
+    window.alert = function (message) {
+        const text = String(message);
+        let icon = 'ℹ️';
+        if (/xatolik|allaqachon|kamida/i.test(text)) icon = '⚠️';
+        else if (/saqlandi/i.test(text)) icon = '✅';
+        else if (/qo'shilmagan|qo‘shilmagan/i.test(text)) icon = '📭';
+
+        document.getElementById('modalIcon').innerText = icon;
+        document.getElementById('modalText').innerText = text;
+        document.getElementById('customModal').classList.remove('hidden');
+    };
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+    });
+
+    /* ===== Konfetti ===== */
+    function launchConfetti() {
+        const canvas = document.getElementById('confettiCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const colors = ['#7c5cff', '#ff4fa3', '#22d3ee', '#fbbf24', '#22c55e', '#ffffff'];
+        const pieces = Array.from({ length: 160 }, () => ({
+            x: Math.random() * canvas.width,
+            y: -20 - Math.random() * canvas.height * 0.5,
+            w: 6 + Math.random() * 8,
+            h: 8 + Math.random() * 10,
+            c: colors[Math.floor(Math.random() * colors.length)],
+            vy: 3 + Math.random() * 5,
+            vx: -2 + Math.random() * 4,
+            r: Math.random() * Math.PI,
+            vr: -0.2 + Math.random() * 0.4
+        }));
+        let frames = 0;
+        (function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pieces.forEach(p => {
+                p.x += p.vx; p.y += p.vy; p.r += p.vr;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.r);
+                ctx.fillStyle = p.c;
+                ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                ctx.restore();
+            });
+            frames++;
+            if (frames < 220) requestAnimationFrame(draw);
+            else ctx.clearRect(0, 0, canvas.width, canvas.height);
+        })();
+    }
+
+    function esc(s) {
+        return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function medal(i) {
+        return i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+    }
+
+    /* ===== Supabase ulanishi (o'zgarmagan) ===== */
     const SUPABASE_URL = "https://gtcnkxljuetepponnkcn.supabase.co";
     const SUPABASE_KEY = "sb_publishable_dWAEoJbqG1ZBIXpHVuI-bA_R5wLUVo9";
 
@@ -605,6 +756,7 @@
     let timerInterval = null;
     let timeLeft = 0;
     let totalQuestionTime = 25;
+    let answerLocked = false;
 
     function setLoading(state) {
         document.getElementById('loadingOverlay').classList.toggle('hidden', !state);
@@ -656,12 +808,12 @@
         const login = document.getElementById('adminLoginInput').value.trim();
         const pass = document.getElementById('adminPassInput').value.trim();
 
-        if (login === ADMIN_LOGIN && pass === ADMIN_PASS) {
+        if (login.toLowerCase() === ADMIN_LOGIN.toLowerCase() && pass === ADMIN_PASS) {
             await syncFromSupabase();
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('adminSection').classList.remove('hidden');
             document.getElementById('userInfoHeader').classList.remove('hidden');
-            document.getElementById('currentUserName').innerText = "Admin: Norboyev";
+            document.getElementById('currentUserName').innerText = "🛡️ Admin: Norboyev";
             generateRandomCode();
             renderQuestions();
             renderStudents();
@@ -677,7 +829,7 @@
     async function loginStudent(e) {
         e.preventDefault();
         const code = document.getElementById('studentCodeInput').value.trim();
-        
+
         setLoading(true);
         const { data: found } = await sb
             .from('students')
@@ -707,6 +859,9 @@
         document.getElementById('adminSection').classList.add('hidden');
         document.getElementById('studentSection').classList.add('hidden');
         document.getElementById('userInfoHeader').classList.add('hidden');
+        document.getElementById('gamePlayCard').classList.add('hidden');
+        document.getElementById('gameResultCard').classList.add('hidden');
+        document.getElementById('gameStartCard').classList.remove('hidden');
         document.getElementById('studentCodeInput').value = '';
         document.getElementById('adminLoginInput').value = '';
         document.getElementById('adminPassInput').value = '';
@@ -724,7 +879,7 @@
     function showAdminTab(tabId, btnEl) {
         document.querySelectorAll('.admin-tab').forEach(el => el.classList.add('hidden'));
         document.getElementById(tabId).classList.remove('hidden');
-        
+
         document.querySelectorAll('.admin-nav .btn').forEach(btn => {
             btn.classList.remove('btn-primary');
             btn.classList.add('btn-outline');
@@ -799,9 +954,9 @@
                     <span class="badge badge-blue">${q.level}-Level</span><br>
                     <small style="color: var(--warning);">⏱ ${q.time_sec || 25}s</small>
                 </td>
-                <td>${q.text}</td>
+                <td>${esc(q.text)}</td>
                 <td>${(q.groups || []).map(g => g + '-G').join(', ')}</td>
-                <td><button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8rem;" onclick="deleteQuestion(${q.id})">O'chirish</button></td>
+                <td><button class="btn btn-danger" style="padding: 6px 10px; font-size: 0.8rem;" onclick="deleteQuestion(${q.id})">🗑</button></td>
             `;
             tbody.appendChild(tr);
         });
@@ -863,9 +1018,9 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><span class="badge badge-blue">${s.group_num}-Guruh</span></td>
-                <td>${s.name}</td>
-                <td><strong>${s.code}</strong></td>
-                <td><button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8rem;" onclick="deleteStudent(${s.id})">O'chirish</button></td>
+                <td>${esc(s.name)}</td>
+                <td><strong>${esc(s.code)}</strong></td>
+                <td><button class="btn btn-danger" style="padding: 6px 10px; font-size: 0.8rem;" onclick="deleteStudent(${s.id})">🗑</button></td>
             `;
             tbody.appendChild(tr);
         });
@@ -931,7 +1086,7 @@
         const hardBody = document.getElementById('hardQuestionsBody');
         hardBody.innerHTML = '';
         const hardQuestions = db.questions.filter(q => (q.fail_count || 0) > 0).sort((a, b) => b.fail_count - a.fail_count);
-        
+
         if (hardQuestions.length === 0) {
             hardBody.innerHTML = `<tr><td colspan="4" style="color: var(--text-muted); text-align: center;">Hozircha xato qayd etilmagan.</td></tr>`;
         } else {
@@ -939,8 +1094,8 @@
                 hardBody.innerHTML += `
                     <tr>
                         <td><span class="badge badge-blue">${hq.level}-Level</span></td>
-                        <td><strong>${hq.text}</strong></td>
-                        <td style="color: var(--success);">${hq.options[hq.correct]}</td>
+                        <td><strong>${esc(hq.text)}</strong></td>
+                        <td style="color: var(--success);">${esc(hq.options[hq.correct])}</td>
                         <td><span class="badge badge-red">${hq.fail_count} marta yiqilgan</span></td>
                     </tr>
                 `;
@@ -963,7 +1118,7 @@
         groupStats.forEach((gs, idx) => {
             gBody.innerHTML += `
                 <tr>
-                    <td><strong>#${idx + 1}</strong></td>
+                    <td><span class="rank-medal">${medal(idx)}</span></td>
                     <td><span class="badge badge-blue">${gs.group}-Guruh</span></td>
                     <td>${gs.count} / 10</td>
                     <td>${gs.avgLevel}-Level</td>
@@ -985,15 +1140,15 @@
         sBody.innerHTML = '';
         filteredStudents.forEach((st, idx) => {
             const mistakes = st.mistakes || [];
-            const mistakesHtml = mistakes.length > 0 
-                ? mistakes.map(m => `<div style="color: #f87171; font-size: 0.82rem;">• [${m.level}-Lvl] ${m.question}</div>`).join('')
-                : `<span style="color: var(--success); font-size: 0.85rem;">Xato qilmagan!</span>`;
+            const mistakesHtml = mistakes.length > 0
+                ? mistakes.map(m => `<div style="color: #ff8fa3; font-size: 0.82rem;">• [${m.level}-Lvl] ${esc(m.question)}</div>`).join('')
+                : `<span style="color: var(--success); font-size: 0.85rem;">Xato qilmagan! ✨</span>`;
 
             sBody.innerHTML += `
                 <tr>
-                    <td><strong>#${idx + 1}</strong></td>
+                    <td><span class="rank-medal">${medal(idx)}</span></td>
                     <td>${st.group_num}-Guruh</td>
-                    <td><strong>${st.name}</strong></td>
+                    <td><strong>${esc(st.name)}</strong></td>
                     <td><span class="badge badge-gold">${st.level}-Level</span></td>
                     <td><strong style="color: var(--success);">${st.score}</strong></td>
                     <td>
@@ -1022,16 +1177,16 @@
 
         if (!isGroupOpen || !isLevelOpen) {
             document.getElementById('levelReadyTitle').innerText = `⏳ Kechki o'yin hali ochilmagan`;
-            document.getElementById('levelReadyDesc').innerText = !isGroupOpen 
+            document.getElementById('levelReadyDesc').innerText = !isGroupOpen
                 ? `Ustozingiz ${currentStudent.group_num}-guruh uchun o'yinni vaqtincha yopib qo'ygan.`
                 : `${currentStudent.level}-Level hali ustoz tomonidan ochilmagan.`;
             startBtn.disabled = true;
-            startBtn.innerText = "Yopiq (Kutilmoqda)";
+            startBtn.innerText = "🔒 Yopiq (Kutilmoqda)";
         } else {
             document.getElementById('levelReadyTitle').innerText = `${currentStudent.level}-Levelga tayyormisiz?`;
             document.getElementById('levelReadyDesc').innerHTML = `Har bir savol uchun taymer ishlaydi! Qancha tez to'g'ri javob bersangiz, shuncha ko'p <strong>Tezkor Bonus</strong> ball olasiz.`;
             startBtn.disabled = false;
-            startBtn.innerText = "O'yinni boshlash";
+            startBtn.innerText = "🚀 O'yinni boshlash";
         }
 
         const groupMates = db.students
@@ -1046,9 +1201,9 @@
         groupMates.forEach((m, i) => {
             const isMe = m.id === currentStudent.id;
             ownTable.innerHTML += `
-                <tr style="${isMe ? 'background: rgba(59, 130, 246, 0.15);' : ''}">
-                    <td><strong>#${i + 1}</strong></td>
-                    <td>${m.name} ${isMe ? '(Siz)' : ''}</td>
+                <tr style="${isMe ? 'background: rgba(124, 92, 255, 0.2);' : ''}">
+                    <td><span class="rank-medal">${medal(i)}</span></td>
+                    <td>${esc(m.name)} ${isMe ? '<span class="badge badge-purple">Siz</span>' : ''}</td>
                     <td><span class="badge badge-blue">${m.level}-Level</span></td>
                     <td>🔥 ${m.max_streak || 0}</td>
                     <td><strong>${m.score}</strong></td>
@@ -1075,7 +1230,7 @@
             return;
         }
 
-        let pool = db.questions.filter(q => 
+        let pool = db.questions.filter(q =>
             (q.groups || []).includes(currentStudent.group_num) && q.level === currentStudent.level
         );
 
@@ -1109,6 +1264,8 @@
 
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
+                if (answerLocked) return;
+                answerLocked = true;
                 handleTimeout(questionObj);
             }
         }, 250);
@@ -1126,11 +1283,23 @@
         else bar.style.backgroundColor = 'var(--danger)';
     }
 
+    function renderProgressDots() {
+        const wrap = document.getElementById('progressDots');
+        wrap.innerHTML = '';
+        activeGameQuestions.forEach((_, i) => {
+            const d = document.createElement('div');
+            d.className = 'dot' + (i < currentQuestionIndex ? ' done' : i === currentQuestionIndex ? ' current' : '');
+            wrap.appendChild(d);
+        });
+    }
+
     function renderCurrentQuestion() {
+        answerLocked = false;
         const q = activeGameQuestions[currentQuestionIndex];
         document.getElementById('qProgress').innerText = `${currentQuestionIndex + 1} / ${activeGameQuestions.length}`;
         document.getElementById('liveStreakBadge').innerText = `🔥 Streak: ${currentStudent.streak || 0}`;
         document.getElementById('activeQuestionText').innerText = q.text;
+        renderProgressDots();
 
         const container = document.getElementById('activeOptionsContainer');
         container.innerHTML = '';
@@ -1138,12 +1307,25 @@
         let mappedOptions = q.options.map((opt, idx) => ({ text: opt, isCorrect: idx === q.correct }));
         mappedOptions = shuffleArray(mappedOptions);
 
-        mappedOptions.forEach(opt => {
+        const letters = ['A', 'B', 'C', 'D'];
+        mappedOptions.forEach((opt, i) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.innerText = opt.text;
+
+            const letter = document.createElement('span');
+            letter.className = 'letter';
+            letter.innerText = letters[i];
+            const label = document.createElement('span');
+            label.innerText = opt.text;
+            btn.appendChild(letter);
+            btn.appendChild(label);
+
             btn.onclick = () => {
+                if (answerLocked) return;
+                answerLocked = true;
                 clearInterval(timerInterval);
+                btn.classList.add('picked');
+                container.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
                 handleAnswer(opt.isCorrect, q);
             };
             container.appendChild(btn);
@@ -1184,7 +1366,7 @@
 
     async function handleTimeout(questionObj) {
         await registerMistakeAndFail(
-            questionObj, 
+            questionObj,
             `⏱ Vaqt tugadi! Siz "${questionObj.text}" savoliga ulgurmadingiz va ${currentStudent.level}-leveldan yiqildingiz.`
         );
     }
@@ -1222,6 +1404,7 @@
                 renderCurrentQuestion();
             }
         } else {
+            document.getElementById('gamePlayCard').classList.add('shake');
             await registerMistakeAndFail(
                 questionObj,
                 `❌ Xato javob! Siz ${currentStudent.level}-leveldan yiqildingiz. Qayta urinib ko'ring — savollar o'rni almashib keladi!`
@@ -1230,14 +1413,19 @@
     }
 
     async function showResult(isWin, message) {
-        document.getElementById('gamePlayCard').classList.add('hidden');
+        const playCard = document.getElementById('gamePlayCard');
+        playCard.classList.add('hidden');
+        playCard.classList.remove('shake');
         const resCard = document.getElementById('gameResultCard');
         resCard.classList.remove('hidden');
 
         const title = document.getElementById('resultTitle');
-        title.innerText = isWin ? "🎉 Level Yakunlandi!" : "Yiqildingiz!";
+        title.innerText = isWin ? "Level yakunlandi!" : "Yiqildingiz!";
         title.style.color = isWin ? "var(--success)" : "var(--danger)";
+        document.getElementById('resultEmoji').innerText = isWin ? "🏆" : "😵";
         document.getElementById('resultDesc').innerText = message;
+
+        if (isWin) launchConfetti();
 
         await updateStudentDashboard();
     }
